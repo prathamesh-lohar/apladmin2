@@ -670,8 +670,8 @@ function App() {
                   <p><strong>Captain:</strong> {team.captainName}</p>
                   <p><strong>Team ID:</strong> {team.teamId}</p>
                   <p><strong>Points Left:</strong> ₹{team.remainingPoints}</p>
-                  <p><strong>Squad:</strong> {team.rosterSlotsFilled}/11</p>
-                  <p><strong>Max Bid:</strong> ₹{team.remainingPoints - ((11 - team.rosterSlotsFilled) * 5)}</p>
+                  <p><strong>Squad:</strong> {team.rosterSlotsFilled}/14</p>
+                  <p><strong>Max Bid:</strong> ₹{team.remainingPoints - ((14 - team.rosterSlotsFilled) * 5)}</p>
                   <div className="team-actions">
                     <a 
                       href={`${API_URL}/teams/${team._id}/download`} 
