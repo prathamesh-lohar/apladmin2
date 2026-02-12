@@ -7,7 +7,7 @@ const SOCKET_URL = 'https://aplplayerauction.onrender.com/';
 const API_URL = 'https://aplplayerauction.onrender.com/api';
 
 // Default placeholder image (SVG data URL)
-const PLACEHOLDER_IMAGE = `${SOCKET_URL}/uploads/wwplaceholder.jpg`;
+const PLACEHOLDER_IMAGE = `${SOCKET_URL}uploads/placeholder.jpg`;
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -566,7 +566,7 @@ function App() {
                   <div key={player._id} className="player-item">
                     {/* console.log player */}
 
-                    <img src={player.photo?.startsWith('http') ? player.photo : `${SOCKET_URL}/uploads${player.photo}`} alt={player.name} onError={(e) => e.target.src = PLACEHOLDER_IMAGE} />
+                    <img src={player.photo?.startsWith('http') ? player.photo : `${SOCKET_URL}uploads${player.photo}`} alt={player.name} onError={(e) => e.target.src = PLACEHOLDER_IMAGE} />
                     <div className="player-details">
                       <strong>{player.name}</strong>
                       <span>{player.category}</span>
