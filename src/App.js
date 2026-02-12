@@ -544,7 +544,7 @@ function App() {
                   <div>
                     <p><strong>Status:</strong> {auctionState.isPaused ? 'PAUSED' : 'ACTIVE'}</p>
                     <p><strong>Current Player:</strong> {auctionState.currentPlayer?.name || 'None'}</p>
-                    <p><strong>Current Bid:</strong> ₹{auctionState.currentHighBid?.amount || 0}</p>
+                    <p><strong>Current Bid:</strong>  {auctionState.currentHighBid?.amount || 0}</p>
                     <div className="control-buttons">
                       {auctionState.isPaused ? (
                         <button onClick={resumeAuction} className="btn-success">Resume</button>
@@ -570,7 +570,7 @@ function App() {
                     <div className="player-details">
                       <strong>{player.name}</strong>
                       <span>{player.category}</span>
-                      <span>Base: ₹{player.basePrice}</span>
+                      <span>Base:  {player.basePrice}</span>
                     </div>
                     <button onClick={() => startAuction(player._id)} className="btn-primary" disabled={autoAuctionStatus.isActive}>
                       Start
@@ -619,7 +619,7 @@ function App() {
                       <td>{player.category}</td>
                       <td><span className={`status-badge ${player.status.toLowerCase()}`}>{player.status}</span></td>
                       <td>{player.soldTo?.teamName || '-'}</td>
-                      <td>{player.soldPrice ? `₹${player.soldPrice}` : '-'}</td>
+                      <td>{player.soldPrice ? ` ${player.soldPrice}` : '-'}</td>
                       <td>
                         <div className="action-buttons">
                           {player.status === 'UNSOLD' && (
@@ -669,9 +669,9 @@ function App() {
                   </div>
                   <p><strong>Captain:</strong> {team.captainName}</p>
                   <p><strong>Team ID:</strong> {team.teamId}</p>
-                  <p><strong>Points Left:</strong> ₹{team.remainingPoints}</p>
+                  <p><strong>Points Left:</strong>  {team.remainingPoints}</p>
                   <p><strong>Squad:</strong> {team.rosterSlotsFilled}/14</p>
-                  <p><strong>Max Bid:</strong> ₹{team.remainingPoints - ((14 - team.rosterSlotsFilled) * 5)}</p>
+                  <p><strong>Max Bid:</strong>  {team.remainingPoints - ((14 - team.rosterSlotsFilled) * 5)}</p>
                   <div className="team-actions">
                     <a 
                       href={`${API_URL}/teams/${team._id}/download`} 
@@ -809,7 +809,7 @@ function App() {
                 </select>
               </div>
               <div className="form-group">
-                <label>Base Price (₹ Lakhs)</label>
+                <label>Base Price (  Lakhs)</label>
                 <input
                   type="number"
                   value={playerForm.basePrice}
