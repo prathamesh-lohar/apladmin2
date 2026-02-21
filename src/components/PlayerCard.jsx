@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, DollarSign, User, Tag } from 'lucide-react';
+import { Play, User, Tag } from 'lucide-react';
 
 const PlayerCard = ({ player, onStart, disabled, socketUrl, placeholderImage }) => {
   const [showInfo, setShowInfo] = useState(false);

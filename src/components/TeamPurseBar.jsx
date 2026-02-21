@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Wallet } from 'lucide-react';
+import { Wallet } from 'lucide-react';
 
 const TeamPurseBar = ({ teams }) => {
   if (!teams || teams.length === 0) {
@@ -21,13 +21,6 @@ const TeamPurseBar = ({ teams }) => {
     if (remainingPoints <= 30) return 'text-orange-700';
     if (remainingPoints <= 60) return 'text-yellow-700';
     return 'text-green-700';
-  };
-
-  const getIconBgClass = (remainingPoints) => {
-    if (remainingPoints <= 10) return 'bg-red-100';
-    if (remainingPoints <= 30) return 'bg-orange-100';
-    if (remainingPoints <= 60) return 'bg-yellow-100';
-    return 'bg-green-100';
   };
 
   return (
