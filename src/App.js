@@ -4,8 +4,8 @@ import axios from "axios";
 import "./App.css";
 import AdminPanel from "./components/AdminPanel";
 
-const SOCKET_URL = "http://localhost:5001/";
-const API_URL = "http://localhost:5001/api";
+const SOCKET_URL = "https://aplplayerauction.onrender.com/";
+const API_URL = "https://aplplayerauction.onrender.com/api";
 
 // Default placeholder image (SVG data URL)
 const PLACEHOLDER_IMAGE = `${SOCKET_URL}uploads/placeholder.jpg`;
