@@ -3,7 +3,8 @@ import io from "socket.io-client";
 import "./App.css";
 import AdminPanel from "./components/AdminPanel";
 
-const SOCKET_URL = "https://aplplayerauction.onrender.com/";
+// const SOCKET_URL = "https://aplplayerauction.onrender.com/";
+const SOCKET_URL = "http://localhost:5001/";
 
 function App() {
   const [socket, setSocket] = useState(null);

@@ -29,7 +29,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
   };
 
   const getTeamStatus = (team) => {
-    if (team.rosterSlotsFilled === 11) {
+    if (team.rosterSlotsFilled === 14) {
       return { label: 'Complete', color: 'green', icon: <CheckCircle size={16} /> };
     }
     if (team.rosterSlotsFilled >= 7) {
@@ -67,7 +67,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {teams.map(team => {
             const status = getTeamStatus(team);
-            const maxBid = team.remainingPoints - ((11 - team.rosterSlotsFilled) * 5);
+            const maxBid = team.remainingPoints - ((14 - team.rosterSlotsFilled) * 30);
             
             return (
               <div 
@@ -124,7 +124,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                   <div className={`text-${status.color}-600`}>{status.icon}</div>
                   <span className={`text-sm font-bold text-${status.color}-700`}>{status.label}</span>
                   <span className={`ml-auto text-xs font-semibold text-${status.color}-600`}>
-                    {team.rosterSlotsFilled}/11
+                    {team.rosterSlotsFilled}/14
                   </span>
                 </div>
 
@@ -151,7 +151,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                       <Users size={14} className="text-purple-600" />
                       <span className="text-xs text-gray-700 font-medium">Squad Progress</span>
                     </div>
-                    <div className="text-2xl font-bold text-purple-700">{team.rosterSlotsFilled} / 11</div>
+                    <div className="text-2xl font-bold text-purple-700">{team.rosterSlotsFilled} / 14</div>
                   </div>
                 </div>
 
@@ -159,12 +159,12 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                 <div className="mb-5">
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                     <div 
-                      className={`h-full bg-gradient-to-r ${getProgressColor(team.rosterSlotsFilled, 11)} transition-all duration-500 shadow-lg`}
-                      style={{ width: `${(team.rosterSlotsFilled / 11) * 100}%` }}
+                      className={`h-full bg-gradient-to-r ${getProgressColor(team.rosterSlotsFilled, 14)} transition-all duration-500 shadow-lg`}
+                      style={{ width: `${(team.rosterSlotsFilled / 14) * 100}%` }}
                     ></div>
                   </div>
                   <span className="text-xs text-gray-600 mt-1.5 block">
-                    {((team.rosterSlotsFilled / 11) * 100).toFixed(0)}% Complete
+                    {((team.rosterSlotsFilled / 14) * 100).toFixed(0)}% Complete
                   </span>
                 </div>
 
@@ -197,7 +197,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                 </div>
 
                 {/* Decorative Corner */}
-                <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${getProgressColor(team.rosterSlotsFilled, 11)} rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-300`}></div>
+                <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${getProgressColor(team.rosterSlotsFilled, 14)} rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-300`}></div>
               </div>
             );
           })}
