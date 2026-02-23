@@ -76,7 +76,7 @@ const TeamPurseBar = ({ teams }) => {
                       {team.teamName}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {team.rosterSlotsFilled || 0}/11 players
+                      {team.rosterSlotsFilled || 0}/14 players
                     </div>
                   </div>
                 </div>
