@@ -1,7 +1,10 @@
 import React from 'react';
-import { Wallet } from 'lucide-react';
+import { DollarSign, Wallet } from 'lucide-react';
 
-const TeamPurseBar = ({ teams }) => {
+const TeamPurseBar = ({ teams, auctionState }) => {
+  const maxSquadSize = auctionState?.maxSquadSize || 11;
+  const initialBudget = auctionState?.initialBudget || 110;
+
   if (!teams || teams.length === 0) {
     return null;
   }
@@ -26,8 +29,8 @@ const TeamPurseBar = ({ teams }) => {
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 px-6 lg:px-8 py-4 border-t border-gray-200">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-          <Wallet size={20} className="text-purple-600" />
+        <div className="w-10 h-10 rounded-xl bg-[#FDB813]/20 flex items-center justify-center">
+          <Wallet size={20} className="text-[#000000]" />
         </div>
         <div>
           <h3 className="text-sm font-bold text-gray-900">Team Budgets</h3>
@@ -37,7 +40,7 @@ const TeamPurseBar = ({ teams }) => {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
         {sortedTeams.map((team) => {
-          const pursePercentage = (team.remainingPoints / 800) * 100; // Assuming 800 is total budget
+          const pursePercentage = (team.remainingPoints / initialBudget) * 100;
           
           return (
             <div
@@ -61,7 +64,13 @@ const TeamPurseBar = ({ teams }) => {
                   {/* Team Logo */}
                   {team.logo && (
                     <img 
-                      src={team.logo.startsWith('http') ? team.logo : `${process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000/'}${team.logo.replace(/^\/+/, '').startsWith('uploads') ? team.logo.replace(/^\/+/, '') : 'uploads/' + team.logo.replace(/^\/+/, '')}`}
+                      src={(() => {
+                        if (team.logo.startsWith('http')) return team.logo;
+                        const baseUrl = (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000/');
+                        const normalizedBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+                        const cleanPath = team.logo.replace(/^\/+/, '');
+                        return `${normalizedBase}${cleanPath}`;
+                      })()}
                       alt={team.teamName}
                       className="w-8 h-8 rounded-full object-cover border border-gray-200 flex-shrink-0"
                       onError={(e) => {
@@ -76,7 +85,7 @@ const TeamPurseBar = ({ teams }) => {
                       {team.teamName}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {team.rosterSlotsFilled || 0}/14 players
+                      {team.rosterSlotsFilled || 0}/{maxSquadSize} players
                     </div>
                   </div>
                 </div>
@@ -84,7 +93,8 @@ const TeamPurseBar = ({ teams }) => {
                 {/* Purse Amount */}
                 <div className="flex-shrink-0 text-right">
                   <div className={`text-lg font-black ${getTextColorClass(team.remainingPoints)} leading-none flex items-center gap-1`}>
-                    {team.remainingPoints} Points
+                    <DollarSign size={14} className="opacity-70" />
+                    {team.remainingPoints}
                   </div>
                   <div className="text-xs text-gray-400 font-medium">
                     {pursePercentage.toFixed(0)}%

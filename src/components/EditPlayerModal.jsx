@@ -27,7 +27,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
     'Batsman': { icon: '🏏', color: 'red', gradient: 'from-red-500 to-red-600' },
     'Bowler': { icon: '⚡', color: 'green', gradient: 'from-green-500 to-green-600' },
     'All-Rounder': { icon: '🌟', color: 'orange', gradient: 'from-orange-500 to-orange-600' },
-    'Wicket-Keeper': { icon: '🧤', color: 'blue', gradient: 'from-blue-500 to-blue-600' }
+    'Wicket-Keeper': { icon: '🧤', color: 'blue', gradient: 'from-[#FDB813] to-[#e5a00a]' }
   };
 
   return (
@@ -40,9 +40,9 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 bg-gradient-to-r from-[#FDB813]/10 to-[#FDB813]/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#000000] to-[#222222] flex items-center justify-center text-[#FDB813]">
               <User size={20} />
             </div>
             <h2 className="text-xl font-bold text-gray-900">Edit Player</h2>
@@ -73,7 +73,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Enter player name"
               required
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
             />
           </div>
 
@@ -91,7 +91,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
                   onClick={() => setForm({ ...form, category: cat })}
                   className={`relative px-4 py-3 rounded-xl border-2 font-semibold transition-all duration-200 overflow-hidden group ${
                     form.category === cat
-                      ? `border-${data.color}-600 bg-gradient-to-r ${data.gradient} text-white shadow-lg scale-105`
+                      ? `border-${data.color}-600 bg-gradient-to-r ${data.gradient} text-[#FDB813] shadow-lg scale-105`
                       : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:shadow-md'
                   }`}
                 >
@@ -114,10 +114,10 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
               className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
             >
               <DollarSign size={16} />
-              Base Price ()
+              Base Price (₹ Lakhs)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg"></span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg">₹</span>
               <input
                 id="playerPrice"
                 type="number"
@@ -126,11 +126,11 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
                 min="5"
                 placeholder="Enter base price"
                 required
-                className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-bold text-lg"
+                className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-bold text-lg"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">Lakhs</span>
             </div>
-            <p className="mt-2 text-xs text-gray-500">Minimum: 30</p>
+            <p className="mt-2 text-xs text-gray-500">Minimum: ₹5 Lakhs</p>
           </div>
 
           {/* Action Buttons */}
@@ -144,7 +144,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] rounded-xl font-semibold hover:from-[#222222] hover:to-[#333333] shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
             >
               Update Player
             </button>

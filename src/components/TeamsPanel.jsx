@@ -3,10 +3,15 @@ import { Download, Edit2, Trash2, Users, Award, DollarSign, TrendingUp, CheckCir
 import EditTeamModal from './EditTeamModal';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000/";
-const DEFAULT_TEAM_LOGO = `${SOCKET_URL}uploads/defaultTeam.png`;
+// Ensure URL ends with slash
+const BASE_URL = SOCKET_URL.endsWith('/') ? SOCKET_URL : SOCKET_URL + '/';
+const DEFAULT_TEAM_LOGO = 'https://res.cloudinary.com/dz8q0fb8m/image/upload/v1772197980/defaultTeam_x7thxe.png';
 
-const TeamsPanel = ({ teams, setTeams, loadData, deleteTeam, updateTeam }) => {
+const TeamsPanel = ({ teams, setTeams, loadData, deleteTeam, updateTeam, auctionState }) => {
   const [editingTeam, setEditingTeam] = useState(null);
+  const maxSquadSize = auctionState?.maxSquadSize || 11;
+  const initialBudget = auctionState?.initialBudget || 110;
+  const minBasePrice = auctionState?.minBasePrice || 5;
   
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"; 
 
@@ -19,20 +24,36 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
     setEditingTeam(team);
   };
 
+  // Helper function to get team logo URL
+  const getTeamLogoUrl = (team) => {
+    if (!team.logo || team.logo.trim() === '') {
+      return DEFAULT_TEAM_LOGO;
+    }
+    
+    // If it's already a full URL (Cloudinary or other), use it as-is
+    if (team.logo.startsWith('http')) {
+      return team.logo;
+    }
+    
+    // Otherwise, construct URL from BASE_URL (legacy local uploads)
+    const cleanPath = team.logo.replace(/^\//, '');
+    return `${BASE_URL}${cleanPath}`;
+  };
+
   const getProgressColor = (filled, total) => {
     const percentage = (filled / total) * 100;
     if (percentage === 100) return 'from-green-500 to-emerald-600';
-    if (percentage >= 75) return 'from-blue-500 to-blue-600';
+    if (percentage >= 75) return 'from-[#FDB813] to-[#e5a00a]';
     if (percentage >= 50) return 'from-yellow-500 to-orange-600';
     if (percentage >= 25) return 'from-orange-500 to-red-500';
     return 'from-gray-400 to-gray-500';
   };
 
   const getTeamStatus = (team) => {
-    if (team.rosterSlotsFilled === 14) {
+    if (team.rosterSlotsFilled >= maxSquadSize) {
       return { label: 'Complete', color: 'green', icon: <CheckCircle size={16} /> };
     }
-    if (team.rosterSlotsFilled >= 7) {
+    if (team.rosterSlotsFilled >= maxSquadSize - 4 && maxSquadSize > 4) {
       return { label: 'Almost Full', color: 'blue', icon: <TrendingUp size={16} /> };
     }
     if (team.rosterSlotsFilled >= 1) {
@@ -47,7 +68,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-gray-900">Teams Management</h2>
-          <span className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-sm shadow-md">
+          <span className="px-3 py-1 bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] rounded-lg font-semibold text-sm shadow-md">
             {teams.length} teams
           </span>
         </div>
@@ -67,7 +88,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {teams.map(team => {
             const status = getTeamStatus(team);
-            const maxBid = team.remainingPoints - ((14 - team.rosterSlotsFilled) * 30);
+            const maxBid = team.remainingPoints - ((maxSquadSize - team.rosterSlotsFilled) * minBasePrice);
             
             return (
               <div 
@@ -100,7 +121,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                 <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-gray-200">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <img 
-                      src={(team.logo && team.logo.trim() !== '') ? `${SOCKET_URL}${team.logo.replace(/^\//,  '')}` : DEFAULT_TEAM_LOGO}
+                      src={getTeamLogoUrl(team)}
                       alt={team.teamName}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -124,7 +145,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                   <div className={`text-${status.color}-600`}>{status.icon}</div>
                   <span className={`text-sm font-bold text-${status.color}-700`}>{status.label}</span>
                   <span className={`ml-auto text-xs font-semibold text-${status.color}-600`}>
-                    {team.rosterSlotsFilled}/14
+                    {team.rosterSlotsFilled}/{maxSquadSize}
                   </span>
                 </div>
 
@@ -135,23 +156,23 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                       <DollarSign size={14} className="text-green-600" />
                       <span className="text-xs text-gray-600 font-medium">Budget Left</span>
                     </div>
-                    <div className="text-xl font-bold text-green-600">{team.remainingPoints}</div>
+                    <div className="text-xl font-bold text-green-600">₹{team.remainingPoints}L</div>
                   </div>
                   
                   <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
                     <div className="flex items-center gap-1 mb-1">
-                      <TrendingUp size={14} className="text-blue-600" />
+                      <TrendingUp size={14} className="text-[#FDB813]" />
                       <span className="text-xs text-gray-600 font-medium">Max Bid</span>
                     </div>
-                    <div className="text-xl font-bold text-blue-600">{maxBid > 0 ? maxBid : 0}</div>
+                    <div className="text-xl font-bold text-[#000000]">₹{maxBid > 0 ? maxBid : 0}L</div>
                   </div>
                   
-                  <div className="col-span-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-3 border border-purple-200">
+                  <div className="col-span-2 bg-gradient-to-r from-[#000000]/5 to-[#FDB813]/5 rounded-xl p-3 border border-[#FDB813]/30">
                     <div className="flex items-center gap-1 mb-1">
-                      <Users size={14} className="text-purple-600" />
+                      <Users size={14} className="text-[#000000]" />
                       <span className="text-xs text-gray-700 font-medium">Squad Progress</span>
                     </div>
-                    <div className="text-2xl font-bold text-purple-700">{team.rosterSlotsFilled} / 14</div>
+                    <div className="text-2xl font-bold text-[#000000]">{team.rosterSlotsFilled} / {maxSquadSize}</div>
                   </div>
                 </div>
 
@@ -159,12 +180,12 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                 <div className="mb-5">
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                     <div 
-                      className={`h-full bg-gradient-to-r ${getProgressColor(team.rosterSlotsFilled, 14)} transition-all duration-500 shadow-lg`}
-                      style={{ width: `${(team.rosterSlotsFilled / 14) * 100}%` }}
+                      className={`h-full bg-gradient-to-r ${getProgressColor(team.rosterSlotsFilled, maxSquadSize)} transition-all duration-500 shadow-lg`}
+                      style={{ width: `${(team.rosterSlotsFilled / maxSquadSize) * 100}%` }}
                     ></div>
                   </div>
                   <span className="text-xs text-gray-600 mt-1.5 block">
-                    {((team.rosterSlotsFilled / 14) * 100).toFixed(0)}% Complete
+                    {((team.rosterSlotsFilled / maxSquadSize) * 100).toFixed(0)}% Complete
                   </span>
                 </div>
 
@@ -180,7 +201,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                   </a>
                   <button 
                     onClick={() => openEditTeam(team)} 
-                    className="flex-1 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 rounded-xl hover:from-blue-200 hover:to-purple-200 transition-colors duration-200 font-semibold text-sm border border-blue-300 shadow-sm hover:shadow-md"
+                    className="flex-1 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-[#FDB813]/20 to-[#FDB813]/10 text-[#000000] rounded-xl hover:text-white hover:from-[#222222] hover:to-[#333333] transition-colors duration-200 font-semibold text-sm border border-[#FDB813]/50 shadow-sm hover:shadow-md"
                     title="Edit team"
                   >
                     <Edit2 size={16} />
@@ -197,7 +218,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                 </div>
 
                 {/* Decorative Corner */}
-                <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${getProgressColor(team.rosterSlotsFilled, 14)} rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-300`}></div>
+                <div className={`absolute -bottom-8 -right-8 w-24 h-24 bg-gradient-to-br ${getProgressColor(team.rosterSlotsFilled, maxSquadSize)} rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-300`}></div>
               </div>
             );
           })}
@@ -209,7 +230,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
           <p className="text-gray-500 mb-4">Create teams in the Settings tab to get started</p>
           <a 
             href="#settings" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] rounded-xl font-semibold hover:from-[#222222] hover:to-[#333333] shadow-lg hover:shadow-xl transition-all duration-200"
           >
             Go to Settings
           </a>
@@ -219,6 +240,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
       {editingTeam && (
         <EditTeamModal
           team={editingTeam}
+          auctionState={auctionState}
           onClose={() => setEditingTeam(null)}
           onUpdate={handleUpdateTeam}
         />

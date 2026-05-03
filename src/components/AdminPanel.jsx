@@ -1,5 +1,5 @@
 import React, { useState , useEffect, useCallback} from "react";
-import { LogOut, Trash2, RotateCcw } from "lucide-react";
+import { LogOut, Trash2 } from "lucide-react";
 import io from 'socket.io-client';
 import StatsBar from "./StatsBar";
 import TeamPurseBar from "./TeamPurseBar";
@@ -10,6 +10,7 @@ import TeamsPanel from "./TeamsPanel";
 import SettingsPanel from "./SettingsPanel";
 import RegistrationPanel from "./RegistrationPanel";
 import LoadingAnimation from "./LoadingAnimation";
+import { StatsBarSkeleton, TeamPurseBarSkeleton } from "./SkeletonLoader";
 
 // const SOCKET_URL = "http://localhost:5000/";
 // const API_URL = "http://localhost:5000/api";
@@ -33,16 +34,24 @@ const AdminPanel = () => {
     queueLength: 0,
     unsoldCount: 0,
     totalRemaining: 0,
+    currentSet: null,
+    setBreakdown: null,
+    setsWithPlayers: [],
+    inUnsoldRound: false,
+    remainingSets: 0,
+    setIntroActive: false,
+    setIntroData: null,
   });
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [isTeamSummaryShowing, setIsTeamSummaryShowing] = useState(false);
 
-  // Memoize loadData so it can be safely used in useEffect dependencies
   const loadData = useCallback(async () => {
     try {
+      setDataLoading(true);
       const [playersRes, teamsRes, statsRes] = await Promise.all([
-        axios.get(`${API_URL}/players`),
+        axios.get(`${API_URL}/players/all`),
         axios.get(`${API_URL}/teams`),
         axios.get(`${API_URL}/auction/stats`),
       ]);
@@ -52,8 +61,10 @@ const AdminPanel = () => {
       setStats(statsRes.data.stats || {});
     } catch (error) {
       console.error("Load error:", error);
+    } finally {
+      setDataLoading(false);
     }
-  }, []); // Empty deps array since it only uses state setters and constants
+  }, []);
 
   
   useEffect(() => {
@@ -105,7 +116,14 @@ const AdminPanel = () => {
       localStorage.removeItem('admin_password');
     });
 
+    newSocket.on('admin:error', (data) => {
+      const message = data?.message || 'Operation failed';
+      alert(message);
+      console.error('Admin action error:', message);
+    });
+
     newSocket.on('auction:state', (data) => {
+      console.log('Auction state updated:', data);
       setAuctionState(data.state);
     });
 
@@ -115,18 +133,54 @@ const AdminPanel = () => {
 
     // Listen for player sold to update player list and stats
     newSocket.on('player:sold', (data) => {
-      // Reload data to get updated player statuses and team info
+      console.log('Player sold:', data);
+      // Immediately update player status in local state
+      setPlayers(prev => prev.map(p => 
+        p._id === data.player._id ? { 
+          ...p, 
+          status: data.player.status || (data.team ? 'SOLD' : 'UNSOLD'),
+          soldTo: data.team ? { teamName: data.team.teamName } : null,
+          soldPrice: data.amount || null
+        } : p
+      ));
+      // Reload full data to get updated team info and stats
       loadData();
     });
 
-    // Listen for auction started to update player status
+    // Listen for auction ended to immediately clear auction state
+    newSocket.on('auction:ended', (data) => {
+      console.log('Auction ended:', data);
+      // Immediately clear auction state for instant UI update
+      setAuctionState(null);
+      // Update player status immediately
+      setPlayers(prev => prev.map(p => 
+        p._id === data.player._id ? { 
+          ...p, 
+          status: data.status,
+          soldTo: data.team ? { teamName: data.team.teamName } : null,
+          soldPrice: data.amount || null
+        } : p
+      ));
+    });
+
+    // Listen for auction started to update player status and auction state
     newSocket.on('auction:started', (data) => {
-      // Update the specific player's status
+      console.log('Auction started:', data);
+      // Update the specific player's status immediately
       setPlayers(prev => prev.map(p => 
         p._id === data.player._id ? { ...p, status: 'IN_AUCTION' } : p
       ));
-      // Also refresh to ensure auction state is current
-      loadData();
+      // Immediately set auction state for instant UI update
+      setAuctionState({
+        isActive: true,
+        isPaused: false,
+        currentPlayer: data.player,
+        currentHighBid: {
+          amount: data.basePrice,
+          team: null
+        },
+        timeRemaining: data.timerValue || 20
+      });
     });
 
     // Listen for bid updates (optional - for real-time bid display)
@@ -140,13 +194,78 @@ const AdminPanel = () => {
       } : prev);
     });
 
+    // Listen for auction pause event
+    newSocket.on('auction:paused', () => {
+      console.log('Auction paused');
+      setAuctionState(prev => prev ? {
+        ...prev,
+        isPaused: true
+      } : prev);
+    });
+
+    // Listen for auction resume event
+    newSocket.on('auction:resumed', () => {
+      console.log('Auction resumed');
+      setAuctionState(prev => prev ? {
+        ...prev,
+        isPaused: false
+      } : prev);
+    });
+
+    // Listen for auction reset event
+    newSocket.on('auction:reset', (data) => {
+      console.log('Auction reset:', data.message);
+      setAuctionState(null);
+      // Reload data to refresh player statuses
+      loadData();
+    });
+
+    // Listen for timer updates
+    newSocket.on('timer:update', (data) => {
+      setAuctionState(prev => prev ? {
+        ...prev,
+        timeRemaining: data.value
+      } : prev);
+    });
+
     // Auto auction events
     newSocket.on('autoAuction:started', (data) => {
       setAutoAuctionStatus(prev => ({
         ...prev,
         isActive: true,
         queueLength: data.queueLength,
-        totalRemaining: data.totalPlayers
+        totalRemaining: data.totalPlayers,
+        setBreakdown: data.setBreakdown || null,
+        setsWithPlayers: data.setsWithPlayers || [],
+        mode: data.mode || 'set',
+      }));
+    });
+
+    newSocket.on('autoAuction:setIntroStarted', (data) => {
+      setAutoAuctionStatus(prev => ({
+        ...prev,
+        currentSet: data.set,
+        setIntroActive: true,
+        setIntroData: data,
+        remainingSets: data.remainingSets,
+      }));
+    });
+
+    newSocket.on('autoAuction:setStarted', (data) => {
+      setAutoAuctionStatus(prev => ({
+        ...prev,
+        setIntroActive: false,
+        currentSet: data.set,
+        queueLength: data.remaining,
+        totalRemaining: data.remaining,
+      }));
+    });
+
+    newSocket.on('autoAuction:setComplete', (data) => {
+      setAutoAuctionStatus(prev => ({
+        ...prev,
+        setIntroActive: false,
+        inUnsoldRound: false,
       }));
     });
 
@@ -155,7 +274,9 @@ const AdminPanel = () => {
         ...prev,
         queueLength: data.queueLength,
         unsoldCount: data.unsoldCount,
-        totalRemaining: data.totalRemaining
+        totalRemaining: data.totalRemaining,
+        currentSet: data.currentSet || prev.currentSet,
+        inUnsoldRound: data.inUnsoldRound || false,
       }));
     });
 
@@ -188,7 +309,6 @@ const AdminPanel = () => {
         unsoldCount: data.unsoldCount,
         totalRemaining: data.remainingInQueue + data.unsoldCount
       });
-      loadData(); // Refresh data when auto auction stops
     });
 
     // Team summary status
@@ -198,23 +318,6 @@ const AdminPanel = () => {
 
     newSocket.on('autoAuction:status', (data) => {
       setAutoAuctionStatus(data);
-    });
-
-    newSocket.on('auction:reset', (data) => {
-      alert(data.message || 'Auction has been reset successfully!');
-      loadData(); // Refresh all data
-    });
-
-    newSocket.on('auction:paused', () => {
-      loadData(); // Refresh to update auction state
-    });
-
-    newSocket.on('auction:resumed', () => {
-      loadData(); // Refresh to update auction state
-    });
-
-    newSocket.on('sale:undone', (data) => {
-      loadData(); // Refresh all data when a sale is undone
     });
 
     // Set up periodic data refresh every 10 seconds
@@ -229,7 +332,7 @@ const AdminPanel = () => {
       newSocket.close();
     };
   }, [isAuthenticated, loadData]);
-
+ 
   const handleLogout = () => {
     localStorage.removeItem("admin_authenticated");
     localStorage.removeItem("admin_password");
@@ -268,27 +371,6 @@ const AdminPanel = () => {
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleResetAuction = () => {
-    const confirmMessage =
-      "Are you sure you want to RESET the auction?\n\nThis will:\n- Stop any active auction\n- Reset all players to UNSOLD\n- Restore all teams to initial budget (₹110L)\n- Clear their rosters\n- Delete all bids\n\nTeam and player data will be preserved.\nThis action CANNOT be undone!";
-
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
-    // Double confirmation for safety
-    const secondConfirm = window.confirm(
-      "FINAL WARNING: This will reset the entire auction. Continue?"
-    );
-    if (!secondConfirm) {
-      return;
-    }
-
-    if (socket) {
-      socket.emit('admin:resetAuction');
     }
   };
 
@@ -333,6 +415,16 @@ const AdminPanel = () => {
     }
   };
 
+  const removeFromAuction = (playerId) => {
+    if (window.confirm('Remove this player from auction back to UNSOLD status?')) {
+      if (socket) {
+        socket.emit('admin:removeFromAuction', { playerId });
+        // Reload data after a brief delay to allow server to process
+        setTimeout(() => loadData(), 500);
+      }
+    }
+  };
+
   const updatePlayer = async (updatedPlayer) => {
     try {
       await axios.put(`${API_URL}/players/${updatedPlayer._id}`, {
@@ -344,6 +436,19 @@ const AdminPanel = () => {
       loadData();
     } catch (error) {
       alert('Error updating player: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const togglePlayerAvailability = async (playerId, currentAvailability) => {
+    try {
+      const newAvailability = currentAvailability === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+      const response = await axios.patch(`${API_URL}/players/${playerId}/availability`, {
+        availability: newAvailability
+      });
+      alert(response.data.message);
+      loadData();
+    } catch (error) {
+      alert('Error toggling availability: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -365,7 +470,8 @@ const AdminPanel = () => {
       const updateData = {
         teamName: updatedTeam.teamName,
         captainName: updatedTeam.captainName,
-        teamId: updatedTeam.teamId
+        teamId: updatedTeam.teamId,
+        remainingPoints: updatedTeam.remainingPoints
       };
       if (updatedTeam.pin) {
         updateData.pin = updatedTeam.pin;
@@ -387,7 +493,7 @@ const AdminPanel = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-yellow-500 p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-300 to-yellow-500 p-4 lg:p-6">
       {/* Global Loading Animations */}
       {isUploading && <LoadingAnimation message="Uploading Players..." />}
       {isLoading && <LoadingAnimation message="Processing..." />}
@@ -398,19 +504,13 @@ const AdminPanel = () => {
           <div className="border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-6 lg:p-8 gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 lg:w-16 lg:h-16 bg-white rounded-xl flex items-center justify-center text-3xl lg:text-4xl shadow-lg">
-                 <img
-                src="/assets/main_logo.png"
-                alt="Cricket Animation"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}></img>
+                <img src="/assets/image.png" alt="A"  className="w-[60px] h-[60px] rounded-full shadow-lg"/>
+                <div className="">
+                  
                 </div>
                 <div>
-                  <h1 className="text-2xl lg:text-3xl font-extrabold bg-yellow bg-clip-text text-transparent">
-                    APL Admin Panel
+                  <h1 className="text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-[#000000] to-[#222222] bg-clip-text text-transparent">
+                    IPL Auction
                   </h1>
                   <p className="text-sm lg:text-base text-gray-600 font-medium">
                     Admin Control Center
@@ -419,13 +519,6 @@ const AdminPanel = () => {
               </div>
 
               <div className="flex gap-3">
-                <button
-                  onClick={handleResetAuction}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-orange-600 border-2 border-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition-all duration-200"
-                >
-                  <RotateCcw size={18} />
-                  <span className="hidden sm:inline">Reset Auction</span>
-                </button>
                 <button
                   onClick={handleClearAllData}
                   className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border-2 border-red-600 rounded-lg font-semibold hover:bg-red-50 transition-all duration-200"
@@ -444,8 +537,8 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <StatsBar stats={stats} teams={teams} />
-          <TeamPurseBar teams={teams} />
+          {dataLoading ? <StatsBarSkeleton /> : <StatsBar stats={stats} teams={teams} />}
+          {dataLoading ? <TeamPurseBarSkeleton /> : <TeamPurseBar teams={teams} auctionState={auctionState} />}
         </header>
 
         {/* Navigation Tabs */}
@@ -458,7 +551,7 @@ const AdminPanel = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-yellow-600 text-white shadow-lg md:scale-100"
+                    ? "bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] shadow-lg md:scale-100"
                     : "text-gray-600 hover:bg-gray-100"
                 } ${
                   // Makes the button take full width in its grid cell
@@ -499,7 +592,9 @@ const AdminPanel = () => {
               handleFileUpload={handleFileUpload}
               deletePlayer={deletePlayer}
               undoSale={undoSale}
+              removeFromAuction={removeFromAuction}
               updatePlayer={updatePlayer}
+              togglePlayerAvailability={togglePlayerAvailability}
             />
           )}
 
@@ -508,6 +603,7 @@ const AdminPanel = () => {
               teams={teams} 
               setTeams={setTeams}
               loadData={loadData}
+              auctionState={auctionState}
               deleteTeam={deleteTeam}
               updateTeam={updateTeam}
             />
@@ -515,6 +611,8 @@ const AdminPanel = () => {
 
           {activeTab === "settings" && (
             <SettingsPanel 
+              players={players}
+              auctionState={auctionState}
               loadData={loadData}
             />
           )}

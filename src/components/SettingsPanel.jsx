@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import { UserPlus, Users, RotateCcw, RefreshCw, Info, AlertTriangle, CheckCircle, Zap, Upload, X } from 'lucide-react';
 import LoadingAnimation from './LoadingAnimation';
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"; 
-const SettingsPanel = ({ loadData }) => {
+const SettingsPanel = ({ loadData, players = [], auctionState }) => {
   const [captainForm, setCaptainForm] = useState({
     teamName: '',
+    captainPlayerId: '',
     captainName: '',
     teamId: '',
     pin: ''
@@ -14,9 +15,48 @@ const SettingsPanel = ({ loadData }) => {
   const [teamLogo, setTeamLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [auctionSettings, setAuctionSettings] = useState({
+    maxSquadSize: auctionState?.maxSquadSize || 11,
+    minBasePrice: auctionState?.minBasePrice || 20,
+    initialBudget: auctionState?.initialBudget || 110
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  React.useEffect(() => {
+    if (auctionState) {
+      setAuctionSettings({
+        maxSquadSize: auctionState.maxSquadSize || 11,
+        minBasePrice: auctionState.minBasePrice || 20,
+        initialBudget: auctionState.initialBudget || 110
+      });
+    }
+  }, [auctionState]);
+
+  const saveAuctionSettings = async (e) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      await axios.put(`${API_URL}/admin/settings`, auctionSettings);
+      alert("✅ Auction settings updated successfully!");
+      loadData();
+    } catch (error) {
+      alert("❌ Error saving settings: " + (error.response?.data?.message || error.message));
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const availableCaptainPlayers = useMemo(() => {
+    return players.filter((player) => {
+      const isUnsold = player.status === 'UNSOLD';
+      const isAvailable = player.availability === 'AVAILABLE';
+      const isNotAssigned = !player.soldTo;
+      return isUnsold && isAvailable && isNotAssigned;
+    });
+  }, [players]);
 
   const generateTeams = async () => {
-    if (!window.confirm('Generate 20 teams with random credentials?\n\nThis will create:\n- 20 teams with auto-generated IDs\n- Random 4-digit PINs\n- 1000L budget each\n\nPINs will be shown only once!')) {
+    if (!window.confirm('Generate 20 teams with random credentials?\n\nThis will create:\n- 20 teams with auto-generated IDs\n- Random 4-digit PINs\n- ₹1000L budget each\n\nPINs will be shown only once!')) {
       return;
     }
 
@@ -75,6 +115,7 @@ const SettingsPanel = ({ loadData }) => {
       const formData = new FormData();
       formData.append('teamName', captainForm.teamName);
       formData.append('captainName', captainForm.captainName);
+      formData.append('captainPlayerId', captainForm.captainPlayerId);
       formData.append('teamId', captainForm.teamId);
       formData.append('pin', captainForm.pin);
       if (teamLogo) {
@@ -91,7 +132,7 @@ const SettingsPanel = ({ loadData }) => {
       
       // Show success with credentials
       alert(
-        `✅ Captain created successfully!\n\n` +
+        `✅ Team created successfully!\n\n` +
         `🏏 Team: ${team.teamName}\n` +
         `👤 Captain: ${team.captainName}\n` +
         `🆔 Team ID: ${team.teamId}\n` +
@@ -100,7 +141,7 @@ const SettingsPanel = ({ loadData }) => {
       );
 
       // Reset form
-      setCaptainForm({ teamName: "", captainName: "", teamId: "", pin: "" });
+  setCaptainForm({ teamName: "", captainPlayerId: "", captainName: "", teamId: "", pin: "" });
       setTeamLogo(null);
       setLogoPreview(null);
       loadData();
@@ -117,12 +158,83 @@ const SettingsPanel = ({ loadData }) => {
   return (
     <div className="space-y-8">
       {/* Loading Animation */}
-      {isCreating && <LoadingAnimation message="Creating Team..." />}
+      {(isCreating || isSavingSettings) && <LoadingAnimation message={isSavingSettings ? "Saving Settings..." : "Creating Team..."} />}
       
+      {/* Auction Configuration */}
+      <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 rounded-2xl p-6 md:p-8 border-2 border-indigo-200 shadow-lg">
+        <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-indigo-200">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-lg">
+            <Zap size={24} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">Global Auction Config</h3>
+            <p className="text-sm text-gray-600">Configure global rules applied during the live auction</p>
+          </div>
+        </div>
+
+        <form onSubmit={saveAuctionSettings} className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Maximum Squad Size
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={auctionSettings.maxSquadSize}
+                onChange={(e) => setAuctionSettings({ ...auctionSettings, maxSquadSize: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all"
+                placeholder="e.g. 11"
+              />
+              <p className="text-xs text-gray-500 mt-2">Bidding will be blocked for teams that reach this many players.</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Minimum Base Price (₹)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={auctionSettings.minBasePrice}
+                onChange={(e) => setAuctionSettings({ ...auctionSettings, minBasePrice: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all"
+                placeholder="e.g. 20"
+              />
+              <p className="text-xs text-gray-500 mt-2">Used to calculate the reserved budget needed to fill out a team's remaining slots.</p>
+            </div>
+            
+            {/* Initial Budget */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-2xl border-2 border-gray-200">
+              <label className="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <span className="text-xl">💰</span> Initial Budget per Team
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={auctionSettings.initialBudget}
+                onChange={(e) => setAuctionSettings({ ...auctionSettings, initialBudget: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all"
+                placeholder="e.g. 110"
+              />
+              <p className="text-xs text-gray-500 mt-2">The starting budget given to new teams or used for calculations.</p>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <CheckCircle size={20} />
+            Save Configuration
+          </button>
+        </form>
+      </div>
+
       {/* Create Individual Captain */}
-      <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 lg:p-8 border-2 border-blue-200 shadow-lg">
-        <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-blue-200">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white shadow-lg">
+      <div className="bg-gradient-to-br from-[#FDB813]/10 via-purple-50 to-pink-50 rounded-2xl p-6 lg:p-8 border-2 border-[#FDB813]/50 shadow-lg">
+        <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-[#FDB813]/50">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#000000] to-[#222222] flex items-center justify-center text-[#FDB813] shadow-lg">
             <UserPlus size={24} />
           </div>
           <div>
@@ -144,22 +256,53 @@ const SettingsPanel = ({ loadData }) => {
                 onChange={(e) => setCaptainForm({...captainForm, teamName: e.target.value})}
                 placeholder="e.g., Mumbai Warriors"
                 required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-medium"
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-medium"
               />
             </div>
 
             <div>
+              <label htmlFor="captainPlayerId" className="block text-sm font-semibold text-gray-700 mb-2">
+                Select Captain Player <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="captainPlayerId"
+                value={captainForm.captainPlayerId}
+                onChange={(e) => {
+                  const selectedPlayer = availableCaptainPlayers.find(
+                    (player) => player._id === e.target.value,
+                  );
+                  setCaptainForm({
+                    ...captainForm,
+                    captainPlayerId: e.target.value,
+                    captainName: selectedPlayer?.name || '',
+                  });
+                }}
+                required
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-medium"
+              >
+                <option value="">Select from available players</option>
+                {availableCaptainPlayers.map((player) => (
+                  <option key={player._id} value={player._id}>
+                    {player.name} ({player.category})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2">
+                Only UNSOLD and AVAILABLE players are shown here.
+              </p>
+            </div>
+
+            <div>
               <label htmlFor="captainName" className="block text-sm font-semibold text-gray-700 mb-2">
-                Captain Name <span className="text-red-500">*</span>
+                Captain Name
               </label>
               <input
                 id="captainName"
                 type="text"
                 value={captainForm.captainName}
-                onChange={(e) => setCaptainForm({...captainForm, captainName: e.target.value})}
-                placeholder="e.g., Rohit Sharma"
-                required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-medium"
+                readOnly
+                placeholder="Will auto-fill from selected player"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none transition-all duration-200 font-medium text-gray-700"
               />
             </div>
 
@@ -174,7 +317,7 @@ const SettingsPanel = ({ loadData }) => {
                 onChange={(e) => setCaptainForm({...captainForm, teamId: e.target.value.toUpperCase()})}
                 placeholder="e.g., MW01"
                 required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-mono font-bold uppercase"
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-mono font-bold uppercase"
               />
             </div>
 
@@ -191,7 +334,7 @@ const SettingsPanel = ({ loadData }) => {
                 pattern="[0-9]{4}"
                 maxLength="4"
                 required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-mono font-bold text-center text-2xl tracking-widest"
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 font-mono font-bold text-center text-2xl tracking-widest"
               />
             </div>
           </div>
@@ -204,7 +347,7 @@ const SettingsPanel = ({ loadData }) => {
             
             {logoPreview ? (
               <div className="relative">
-                <div className="w-full h-40 rounded-xl overflow-hidden border-4 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                <div className="w-full h-40 rounded-xl overflow-hidden border-4 border-[#FDB813]/50 bg-gradient-to-br from-[#FDB813]/10 to-[#FDB813]/5 flex items-center justify-center">
                   <img 
                     src={logoPreview} 
                     alt="Team Logo Preview" 
@@ -225,10 +368,10 @@ const SettingsPanel = ({ loadData }) => {
             ) : (
               <div
                 onClick={() => document.getElementById('team-logo-input').click()}
-                className="w-full h-40 rounded-xl border-4 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer group"
+                className="w-full h-40 rounded-xl border-4 border-dashed border-gray-300 bg-gray-50 hover:border-[#FDB813]/50 hover:bg-[#FDB813]/10 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer group"
               >
-                <Upload size={40} className="text-gray-400 group-hover:text-blue-600 mb-3 transition-colors" />
-                <p className="text-gray-700 font-semibold group-hover:text-blue-700">Upload Team Logo</p>
+                <Upload size={40} className="text-gray-400 group-hover:text-[#000000] mb-3 transition-colors" />
+                <p className="text-gray-700 font-semibold group-hover:text-[#000000]">Upload Team Logo</p>
                 <p className="text-sm text-gray-500 mt-1">Click to browse • Max 2MB • PNG, JPG</p>
               </div>
             )}
@@ -256,7 +399,7 @@ const SettingsPanel = ({ loadData }) => {
 
           <button
             type="submit"
-            disabled={isCreating}
+            disabled={isCreating || availableCaptainPlayers.length === 0}
             className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCreating ? (
@@ -267,17 +410,22 @@ const SettingsPanel = ({ loadData }) => {
             ) : (
               <>
                 <UserPlus size={20} />
-                Create Captain
+                Create Team Captain
               </>
             )}
           </button>
+          {availableCaptainPlayers.length === 0 && (
+            <p className="text-sm text-red-600 font-semibold text-center">
+              No available players found. Register players first or mark existing players as available.
+            </p>
+          )}
         </form>
       </div>
 
       {/* Quick Actions */}
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 lg:p-8 border-2 border-gray-200 shadow-lg">
         <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-gray-300">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FDB813] to-[#e5a00a] flex items-center justify-center text-white shadow-lg">
             <Zap size={24} />
           </div>
           <div>
@@ -289,16 +437,16 @@ const SettingsPanel = ({ loadData }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={generateTeams}
-            className="group relative flex items-start gap-4 bg-white p-6 border-2 border-gray-200 rounded-2xl hover:border-blue-500 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            className="group relative flex items-start gap-4 bg-white p-6 border-2 border-gray-200 rounded-2xl hover:border-[#FDB813]/50 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-            <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FDB813]/100 to-[#FDB813]/50 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            <div className="w-14 h-14 bg-[#000000] text-[#FDB813] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
               <Users size={24} />
             </div>
             <div className="flex-1 text-left">
               <div className="font-bold text-gray-900 mb-1 text-lg">Generate 20 Teams</div>
               <div className="text-sm text-gray-600">Create bulk teams with random credentials</div>
-              <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 font-semibold">
+              <div className="mt-2 flex items-center gap-1 text-xs text-[#FDB813] font-semibold">
                 <CheckCircle size={14} />
                 Auto-download credentials
               </div>
@@ -344,7 +492,7 @@ const SettingsPanel = ({ loadData }) => {
       </div>
 
       {/* Instructions */}
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-6 lg:p-8 border-2 border-indigo-200 shadow-lg">
+      <div className="bg-gradient-to-br from-[#FDB813]/10 via-indigo-50 to-[#FDB813]/5 rounded-2xl p-6 lg:p-8 border-2 border-indigo-200 shadow-lg">
         <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-indigo-200">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg">
             <Info size={24} />
@@ -357,7 +505,7 @@ const SettingsPanel = ({ loadData }) => {
 
         <ol className="space-y-5">
           <li className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#000000] to-[#222222] text-[#FDB813] flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
               1
             </div>
             <div className="flex-1 pt-1">
@@ -369,7 +517,7 @@ const SettingsPanel = ({ loadData }) => {
           </li>
 
           <li className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#000000] to-[#222222] text-[#FDB813] flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
               2
             </div>
             <div className="flex-1 pt-1">
@@ -381,7 +529,7 @@ const SettingsPanel = ({ loadData }) => {
           </li>
 
           <li className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#000000] to-[#222222] text-[#FDB813] flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
               3
             </div>
             <div className="flex-1 pt-1">
@@ -393,7 +541,7 @@ const SettingsPanel = ({ loadData }) => {
           </li>
 
           <li className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#000000] to-[#222222] text-[#FDB813] flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
               4
             </div>
             <div className="flex-1 pt-1">
@@ -405,7 +553,7 @@ const SettingsPanel = ({ loadData }) => {
           </li>
 
           <li className="flex gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#000000] to-[#222222] text-[#FDB813] flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300">
               5
             </div>
             <div className="flex-1 pt-1">

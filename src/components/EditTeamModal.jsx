@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, User, CreditCard, Lock, AlertCircle } from 'lucide-react';
 
-const EditTeamModal = ({ team, onClose, onUpdate }) => {
+const EditTeamModal = ({ team, auctionState, onClose, onUpdate }) => {
+  const defaultBudget = auctionState?.initialBudget || 110;
   const [form, setForm] = useState({
     teamName: '',
     captainName: '',
     teamId: '',
-    pin: ''
+    pin: '',
+    remainingPoints: defaultBudget
   });
   const [showPinWarning, setShowPinWarning] = useState(false);
 
@@ -16,10 +18,11 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
         teamName: team.teamName,
         captainName: team.captainName,
         teamId: team.teamId,
-        pin: ''
+        pin: '',
+        remainingPoints: team.remainingPoints ?? defaultBudget
       });
     }
-  }, [team]);
+  }, [team, defaultBudget]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -46,9 +49,9 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 bg-gradient-to-r from-[#FDB813]/10 to-[#FDB813]/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#000000] to-[#222222] flex items-center justify-center text-[#FDB813]">
               <Users size={20} />
             </div>
             <h2 className="text-xl font-bold text-gray-900">Edit Team</h2>
@@ -76,7 +79,7 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
               onChange={(e) => setForm({...form, teamName: e.target.value})}
               placeholder="Enter team name"
               required
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
             />
           </div>
 
@@ -93,7 +96,7 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
               onChange={(e) => setForm({...form, captainName: e.target.value})}
               placeholder="Enter captain name"
               required
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
             />
           </div>
 
@@ -110,7 +113,25 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
               onChange={(e) => setForm({...form, teamId: e.target.value})}
               placeholder="Enter team ID"
               required
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-mono font-bold uppercase"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-mono font-bold uppercase"
+            />
+          </div>
+
+          {/* Remaining Points */}
+          <div>
+            <label htmlFor="remainingPoints" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <CreditCard size={16} />
+              Remaining Budget (Points)
+            </label>
+            <input
+              id="remainingPoints"
+              type="number"
+              value={form.remainingPoints}
+              onChange={(e) => setForm({...form, remainingPoints: parseInt(e.target.value) || 0})}
+              placeholder="Remaining Budget"
+              required
+              min="0"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-mono font-bold"
             />
           </div>
 
@@ -160,7 +181,7 @@ const EditTeamModal = ({ team, onClose, onUpdate }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] rounded-xl font-semibold hover:from-[#222222] hover:to-[#333333] shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
             >
               Update Team
             </button>

@@ -149,7 +149,7 @@ const RegistrationPanel = ({ loadData }) => {
     'Batsman': 'from-red-500 to-red-600',
     'Bowler': 'from-green-500 to-green-600',
     'All-Rounder': 'from-orange-500 to-orange-600',
-    'Wicket-Keeper': 'from-blue-500 to-blue-600'
+    'Wicket-Keeper': 'from-[#FDB813] to-[#e5a00a]'
   };
 
   const categoryIcons = {
@@ -170,7 +170,7 @@ const RegistrationPanel = ({ loadData }) => {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Player Registration</h2>
           <p className="text-gray-600">Register new players for the upcoming cricket auction</p>
         </div>
-        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg">
+        <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#000000] to-[#222222] text-[#FDB813] rounded-xl font-semibold shadow-lg">
           <User className="mr-2" size={20} />
           Quick Add Player
         </div>
@@ -183,7 +183,7 @@ const RegistrationPanel = ({ loadData }) => {
           <div className="lg:col-span-1">
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border-2 border-gray-200 h-full">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Camera size={20} className="text-blue-600" />
+                <Camera size={20} className="text-[#FDB813]" />
                 Player Photo
               </h3>
               
@@ -191,7 +191,7 @@ const RegistrationPanel = ({ loadData }) => {
               <div className="space-y-4">
                 {photoPreview ? (
                   <div className="relative">
-                    <div className="w-full aspect-square rounded-2xl overflow-hidden border-4 border-blue-500 shadow-xl">
+                    <div className="w-full aspect-square rounded-2xl overflow-hidden border-4 border-[#FDB813]/50 shadow-xl">
                       <img 
                         src={photoPreview} 
                         alt="Preview" 
@@ -213,12 +213,12 @@ const RegistrationPanel = ({ loadData }) => {
                     onDrop={handleDrop}
                     className={`w-full aspect-square rounded-2xl border-4 border-dashed transition-all duration-200 flex flex-col items-center justify-center cursor-pointer ${
                       isDragging 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50'
+                        ? 'border-[#FDB813]/50 bg-[#FDB813]/10' 
+                        : 'border-gray-300 bg-white hover:border-[#FDB813]/50 hover:bg-[#FDB813]/10'
                     }`}
                     onClick={() => document.getElementById('photo-input').click()}
                   >
-                    <Upload size={48} className={`mb-4 ${isDragging ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <Upload size={48} className={`mb-4 ${isDragging ? 'text-[#FDB813]' : 'text-gray-400'}`} />
                     <p className="text-gray-700 font-semibold mb-1">
                       {isDragging ? 'Drop photo here' : 'Upload Photo'}
                     </p>
@@ -248,7 +248,7 @@ const RegistrationPanel = ({ loadData }) => {
           <div className="lg:col-span-2">
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border-2 border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <User size={20} className="text-blue-600" />
+                <User size={20} className="text-[#FDB813]" />
                 Player Information
               </h3>
 
@@ -265,7 +265,7 @@ const RegistrationPanel = ({ loadData }) => {
                     onChange={handleInputChange}
                     placeholder="e.g., Virat Kohli"
                     required
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 text-gray-900 font-medium placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:border-[#FDB813]/50 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 text-gray-900 font-medium placeholder-gray-400"
                   />
                 </div>
 
@@ -298,7 +298,7 @@ const RegistrationPanel = ({ loadData }) => {
                 {/* Base Price */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Base Price () <span className="text-red-500">*</span>
+                    Base Price (₹ Lakhs) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <DollarSign 
@@ -310,14 +310,14 @@ const RegistrationPanel = ({ loadData }) => {
                       name="basePrice"
                       value={formData.basePrice}
                       onChange={handleInputChange}
-                      min="20"
+                      min="0"
                       max="150"
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 text-gray-900 font-bold text-lg"
+                      className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-300 rounded-xl focus:border-[#FDB813]/50 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 text-gray-900 font-bold text-lg"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Minimum: 20 • Maximum: 150
+                    Minimum: ₹5L • Maximum: ₹150L
                   </p>
                 </div>
               </div>
@@ -353,7 +353,7 @@ const RegistrationPanel = ({ loadData }) => {
             className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-200 ${
               isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:shadow-xl hover:scale-105'
+                : 'bg-gradient-to-r from-[#000000] to-[#222222] hover:from-[#222222] hover:to-[#333333] text-[#FDB813] hover:shadow-xl hover:scale-105'
             }`}
           >
             {isSubmitting ? (
@@ -373,7 +373,7 @@ const RegistrationPanel = ({ loadData }) => {
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-200">
+        <div className="bg-gradient-to-br from-[#FDB813]/10 to-blue-100 p-6 rounded-xl border-2 border-[#FDB813]/50">
           <div className="text-3xl mb-2">🏏</div>
           <h4 className="font-bold text-gray-900 mb-1">Category Guide</h4>
           <p className="text-sm text-gray-600">
@@ -381,7 +381,7 @@ const RegistrationPanel = ({ loadData }) => {
           </p>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border-2 border-purple-200">
+        <div className="bg-gradient-to-br from-[#000000]/5 to-[#000000]/10 p-6 rounded-xl border-2 border-[#FDB813]/30">
           <div className="text-3xl mb-2">💰</div>
           <h4 className="font-bold text-gray-900 mb-1">Base Price</h4>
           <p className="text-sm text-gray-600">

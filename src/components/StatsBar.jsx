@@ -10,9 +10,9 @@ const StatsBar = ({ stats, teams }) => {
       label: 'Total Players',
       value: stats.totalPlayers,
       icon: <Users size={22} />,
-      gradient: 'from-blue-500 to-blue-600',
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
+      gradient: 'from-[#FDB813] to-[#e5a00a]',
+      iconBg: 'bg-[#000000]',
+      iconColor: 'text-[#FDB813]',
       badge: null,
       pulse: false
     },
@@ -54,7 +54,7 @@ const StatsBar = ({ stats, teams }) => {
         {statsData.map((stat, index) => (
           <div
             key={index}
-            className="group relative bg-white rounded-2xl p-5 lg:p-6 flex items-start gap-4 border-2 border-gray-200 hover:border-blue-500 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            className="group relative bg-white rounded-2xl p-5 lg:p-6 flex items-start gap-4 border-2 border-gray-200 hover:border-[#FDB813]/50 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
           >
             {/* Background Gradient Overlay on Hover */}
             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
@@ -76,7 +76,7 @@ const StatsBar = ({ stats, teams }) => {
                 {stat.badge && (
                   <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
                     stat.pulse 
-                      ? `bg-gradient-to-r ${stat.gradient} text-white` 
+                      ? `bg-gradient-to-r ${stat.gradient} text-[#FDB813]` 
                       : 'bg-gray-200 text-gray-600'
                   }`}>
                     {stat.badge}
@@ -98,10 +98,10 @@ const StatsBar = ({ stats, teams }) => {
       {stats.totalPlayers > 0 && (
         <div className="mt-6 pt-6 border-t-2 border-gray-200">
           <div className="flex items-center justify-center gap-2 text-gray-600">
-            <Activity size={18} className="text-blue-600" />
+            <Activity size={18} className="text-[#FDB813]" />
             <span className="text-sm font-medium">
               Auction Progress: 
-              <span className="ml-2 font-bold text-blue-600">{completionRate}% Complete</span>
+              <span className="ml-2 font-bold text-[#FDB813]">{completionRate}% Complete</span>
               <span className="mx-2">•</span>
               <span className="font-bold text-green-600">{stats.soldPlayers} Sold</span>
               <span className="mx-2">•</span>
