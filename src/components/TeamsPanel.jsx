@@ -88,7 +88,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {teams.map(team => {
             const status = getTeamStatus(team);
-            const maxBid = team.remainingPoints - ((maxSquadSize - team.rosterSlotsFilled) * minBasePrice);
+            const maxBid = team.remainingPoints - ((maxSquadSize - team.rosterSlotsFilled-1) * minBasePrice);
             
             return (
               <div 
@@ -156,7 +156,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                       <DollarSign size={14} className="text-green-600" />
                       <span className="text-xs text-gray-600 font-medium">Budget Left</span>
                     </div>
-                    <div className="text-xl font-bold text-green-600">₹{team.remainingPoints}L</div>
+                    <div className="text-xl font-bold text-green-600">{team.remainingPoints}L</div>
                   </div>
                   
                   <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
@@ -164,7 +164,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
                       <TrendingUp size={14} className="text-[#FDB813]" />
                       <span className="text-xs text-gray-600 font-medium">Max Bid</span>
                     </div>
-                    <div className="text-xl font-bold text-[#000000]">₹{maxBid > 0 ? maxBid : 0}L</div>
+                    <div className="text-xl font-bold text-[#000000]">{maxBid > 0 ? maxBid : 0}L</div>
                   </div>
                   
                   <div className="col-span-2 bg-gradient-to-r from-[#000000]/5 to-[#FDB813]/5 rounded-xl p-3 border border-[#FDB813]/30">

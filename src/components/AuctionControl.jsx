@@ -57,7 +57,7 @@ const AuctionControl = ({
   const startAutoAuction = (mode) => {
     const label = mode === 'random'
       ? 'Start RANDOM auto auction?\n\nAll available players will be auctioned one by one in a completely random order regardless of their base price.'
-      : 'Start SET-WISE auto auction?\n\nPlayers will be auctioned in set order: Set A++ (₹200L+) → Set A (₹150L+) → Set B (₹100L+) → Set C (₹50L+) → Set D (₹20L+).';
+      : 'Start SET-WISE auto auction?\n\nPlayers will be auctioned in set order: Set A++ (200L+) → Set A (150L+) → Set B (100L+) → Set C (50L+) → Set D (20L+).';
     if (window.confirm(label)) {
       if (socket) {
         socket.emit('admin:startAutoAuction', { mode });
@@ -192,7 +192,7 @@ const AuctionControl = ({
                     <span className="text-xs font-bold uppercase tracking-wide text-gray-700">Intro Showing (30s)</span>
                   </div>
                   <p className="text-xs text-gray-600">
-                    {autoAuctionStatus.setIntroData.label} &middot; Base ₹{autoAuctionStatus.setIntroData.basePrice}L &middot; {autoAuctionStatus.setIntroData.totalPlayers} players
+                    {autoAuctionStatus.setIntroData.label} &middot; Base {autoAuctionStatus.setIntroData.basePrice}L &middot; {autoAuctionStatus.setIntroData.totalPlayers} players
                   </p>
                 </div>
               )}
@@ -215,7 +215,7 @@ const AuctionControl = ({
                       <div key={set} className={`rounded-xl border-2 p-2 text-center transition-all ${palettes[set]}`}>
                         <div className="text-lg font-black leading-none">{set === 'APP' ? 'A++' : set}</div>
                         <div className="text-sm font-bold mt-0.5">{count}</div>
-                        <div className="text-[10px] opacity-70">₹{basePrices[set]}L</div>
+                        <div className="text-[10px] opacity-70">{basePrices[set]}L</div>
                         {isCurrent && <div className="w-full h-1 mt-1 rounded-full bg-current opacity-50" />}
                       </div>
                     );
@@ -263,7 +263,7 @@ const AuctionControl = ({
                   {[{s:'A++',p:200,c:'bg-rose-50 border-rose-300 text-rose-800'},{s:'A',p:150,c:'bg-amber-50 border-amber-300 text-amber-800'},{s:'B',p:100,c:'bg-[#FDB813]/10 border-[#FDB813]/50 text-[#FDB813]'},{s:'C',p:50,c:'bg-emerald-50 border-emerald-300 text-emerald-800'},{s:'D',p:20,c:'bg-slate-50 border-slate-300 text-slate-700'}].map(({s,p,c}) => (
                     <div key={s} className={`rounded-lg border-2 p-2 text-center ${c}`}>
                       <div className="font-black text-sm leading-none">Set {s}</div>
-                      <div className="text-[10px] font-bold opacity-80 mt-1">₹{p}L+</div>
+                      <div className="text-[10px] font-bold opacity-80 mt-1">{p}L+</div>
                     </div>
                   ))}
                 </div>
@@ -360,7 +360,7 @@ const AuctionControl = ({
                           <span className={`inline-block px-2 py-1 rounded-md text-xs font-bold ${getCategoryColor(auctionState.currentPlayer.category)}`}>
                             {auctionState.currentPlayer.category}
                           </span>
-                          <span className="text-xs text-[#FDB813]/80">Base: ₹{auctionState.currentPlayer.basePrice}L</span>
+                          <span className="text-xs text-[#FDB813]/80">Base: {auctionState.currentPlayer.basePrice}L</span>
                         </div>
                       </div>
 
@@ -368,7 +368,7 @@ const AuctionControl = ({
                       <div className="bg-white/90 rounded-lg p-3">
                         <div className="text-xs text-gray-600 font-semibold mb-1">Current Bid</div>
                         <div className="text-3xl font-black text-green-600">
-                          ₹{auctionState.currentHighBid?.amount || auctionState.currentPlayer.basePrice}L
+                          {auctionState.currentHighBid?.amount || auctionState.currentPlayer.basePrice}L
                         </div>
                         {auctionState.currentHighBid?.team && (
                           <div className="text-xs text-gray-600 mt-1">

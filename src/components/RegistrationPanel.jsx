@@ -298,7 +298,7 @@ const RegistrationPanel = ({ loadData }) => {
                 {/* Base Price */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Base Price (₹ Lakhs) <span className="text-red-500">*</span>
+                    Base Price ( Lakhs) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <DollarSign 
@@ -317,7 +317,7 @@ const RegistrationPanel = ({ loadData }) => {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Minimum: ₹5L • Maximum: ₹150L
+                    Minimum: 5L • Maximum: 150L
                   </p>
                 </div>
               </div>

@@ -58,7 +58,7 @@ const PlayerCard = ({ player, onStart, disabled, socketUrl, placeholderImage }) 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-green-600 font-semibold">
             <DollarSign size={16} />
-            <span>₹{player.basePrice} L</span>
+            <span>{player.basePrice} L</span>
           </div>
           <div className="flex items-center gap-1 text-gray-600 text-sm">
             <Tag size={14} />

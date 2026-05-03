@@ -114,10 +114,10 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
               className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
             >
               <DollarSign size={16} />
-              Base Price (₹ Lakhs)
+              Base Price ( Lakhs)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg"></span>
               <input
                 id="playerPrice"
                 type="number"
@@ -130,7 +130,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">Lakhs</span>
             </div>
-            <p className="mt-2 text-xs text-gray-500">Minimum: ₹5 Lakhs</p>
+            <p className="mt-2 text-xs text-gray-500">Minimum: 5 Lakhs</p>
           </div>
 
           {/* Action Buttons */}

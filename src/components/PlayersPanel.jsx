@@ -220,12 +220,12 @@ const PlayersPanel = ({
                       {player.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-green-600">₹{player.basePrice} L</td>
+                  <td className="px-6 py-4 font-semibold text-green-600">{player.basePrice} L</td>
                   <td className="px-6 py-4">{getStatusBadge(player.status)}</td>
                   <td className="px-6 py-4">{getAvailabilityBadge(player.availability || 'AVAILABLE')}</td>
                   <td className="px-6 py-4 text-gray-700">{player.soldTo?.teamName || '-'}</td>
                   <td className="px-6 py-4 font-semibold text-green-600">
-                    {player.soldPrice ? `₹${player.soldPrice} L` : '-'}
+                    {player.soldPrice ? `${player.soldPrice} L` : '-'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">

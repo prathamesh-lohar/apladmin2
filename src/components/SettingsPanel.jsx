@@ -56,7 +56,7 @@ const SettingsPanel = ({ loadData, players = [], auctionState }) => {
   }, [players]);
 
   const generateTeams = async () => {
-    if (!window.confirm('Generate 20 teams with random credentials?\n\nThis will create:\n- 20 teams with auto-generated IDs\n- Random 4-digit PINs\n- ₹1000L budget each\n\nPINs will be shown only once!')) {
+    if (!window.confirm('Generate 20 teams with random credentials?\n\nThis will create:\n- 20 teams with auto-generated IDs\n- Random 4-digit PINs\n- 1000L budget each\n\nPINs will be shown only once!')) {
       return;
     }
 
@@ -192,7 +192,7 @@ const SettingsPanel = ({ loadData, players = [], auctionState }) => {
             
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Minimum Base Price (₹)
+                Minimum Base Price ()
               </label>
               <input
                 type="number"
