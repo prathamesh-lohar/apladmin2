@@ -94,22 +94,6 @@ const StatsBar = ({ stats, teams }) => {
         ))}
       </div>
 
-      {/* Additional Stats Row */}
-      {stats.totalPlayers > 0 && (
-        <div className="mt-6 pt-6 border-t-2 border-gray-200">
-          <div className="flex items-center justify-center gap-2 text-gray-600">
-            <Activity size={18} className="text-[#FDB813]" />
-            <span className="text-sm font-medium">
-              Auction Progress: 
-              <span className="ml-2 font-bold text-[#FDB813]">{completionRate}% Complete</span>
-              <span className="mx-2">•</span>
-              <span className="font-bold text-green-600">{stats.soldPlayers} Sold</span>
-              <span className="mx-2">•</span>
-              <span className="font-bold text-orange-600">{stats.unsoldPlayers} Remaining</span>
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

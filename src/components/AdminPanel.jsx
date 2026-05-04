@@ -47,9 +47,9 @@ const AdminPanel = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [isTeamSummaryShowing, setIsTeamSummaryShowing] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = false) => {
     try {
-      setDataLoading(true);
+      if (showLoading) setDataLoading(true);
       const [playersRes, teamsRes, statsRes] = await Promise.all([
         axios.get(`${API_URL}/players/all`),
         axios.get(`${API_URL}/teams`),
