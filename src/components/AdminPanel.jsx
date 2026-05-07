@@ -427,11 +427,20 @@ const AdminPanel = () => {
 
   const updatePlayer = async (updatedPlayer) => {
     try {
-      await axios.put(`${API_URL}/players/${updatedPlayer._id}`, {
-        name: updatedPlayer.name,
-        category: updatedPlayer.category,
-        basePrice: updatedPlayer.basePrice
-      });
+      if (updatedPlayer.photoFile) {
+        const formData = new FormData();
+        formData.append("name", updatedPlayer.name);
+        formData.append("category", updatedPlayer.category);
+        formData.append("basePrice", updatedPlayer.basePrice);
+        formData.append("photo", updatedPlayer.photoFile);
+        await axios.put(`${API_URL}/players/${updatedPlayer._id}`, formData);
+      } else {
+        await axios.put(`${API_URL}/players/${updatedPlayer._id}`, {
+          name: updatedPlayer.name,
+          category: updatedPlayer.category,
+          basePrice: updatedPlayer.basePrice
+        });
+      }
       alert('Player updated successfully!');
       loadData();
     } catch (error) {

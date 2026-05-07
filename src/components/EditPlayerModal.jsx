@@ -7,6 +7,7 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
     category: "",
     basePrice: "",
   });
+  const [photoFile, setPhotoFile] = useState(null);
 
   useEffect(() => {
     if (player) {
@@ -15,12 +16,13 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
         category: player.category,
         basePrice: player.basePrice,
       });
+      setPhotoFile(null);
     }
   }, [player]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate({ ...player, ...form });
+    onUpdate({ ...player, ...form, photoFile });
   };
 
   const categoryData = {
@@ -131,6 +133,23 @@ const EditPlayerModal = ({ player, onClose, onUpdate }) => {
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">Lakhs</span>
             </div>
             <p className="mt-2 text-xs text-gray-500">Minimum: 5 Lakhs</p>
+          </div>
+
+          {/* Player Photo */}
+          <div>
+            <label
+              htmlFor="playerPhoto"
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
+            >
+              Player Photo
+            </label>
+            <input
+              id="playerPhoto"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-[#FDB813]/50 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-900 font-medium"
+            />
           </div>
 
           {/* Action Buttons */}
